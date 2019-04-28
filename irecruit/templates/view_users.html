@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block content %}
+        <ul class="list-group">
+        {% for user in users %}
+
+            {% for usr in usr %}
+         {% if usr.id == user.id %}
+        <li class="list-group-item" style="font-weight: bold;">
+
+             Name : {{ usr.firstname }} {{ usr.lastname }}<br>
+            Email :{{ user.email }} <br>
+            Score :{{ user.score }}
+
+            <div class="btn-group container">
+                {% if user.score > 50 %}
+                     <div class="btn-group container">
+                <button type="button" id="pass" class="btn btn-primary" style="background-color: green">Pass</button>
+                    </div>
+                    <form method="post" action="/passe_mails"> <button type="submit" class="btn btn-primary" name = "send" value = "{{ user.email }}">Send Mail</button></form>
+
+                {% else %}
+                    <div class="btn-group container">
+                     <button type="button" class="btn btn-primary" style="background-color: red">Fail</button>
+                    </div>
+                    <form method="post" action="/passe"> <button type="submit" class="btn btn-primary" name = "send" value = "{{ user.email }}">Send Mail</button></form>
+                    {% endif %}
+            </div>
+
+
+        </li>
+         {% endif %}
+            {% endfor %}
+        {% endfor %}
+        </ul>
+
+
+{% endblock content %}

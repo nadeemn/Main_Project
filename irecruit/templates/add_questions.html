@@ -1,0 +1,34 @@
+{% extends "layoutadmin.html" %}
+{% block content %}
+    <div class="content-section">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Add Question</legend>
+                 <div class="form-group">
+                    {{ form.Id.label(class="form-control-label lab") }}
+                     {{ form.Id(class="form-control form-control-lg ", size="75") }}
+                </div>
+                <div class="form-group">
+                    {{ form.Question.label(class="form-control-label lab") }}
+                    {{ form.Question(class="form-control form-control-lg ", size="75") }}
+                </div>
+                <div class="form-group">
+                    {{ form.Answer.label(class="form-control-label lab") }}
+                    {{ form.Answer(class="form-control form-control-lg ", size="75") }}
+                </div>
+                <div class="form-group">
+                     {{ form.Language.label(class="form-control-label lab") }}
+                    {{ form.Language(class="dropdown-content input100 form-control-lg form-control") }}
+                </div>
+                <div class="form-group">
+                     {{ form.Level.label(class="form-control-label lab") }}
+                    {{ form.Level(class="dropdown-content input100 form-control-lg form-control") }}
+                </div>
+            </fieldset>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+    </div>
+{% endblock content %}

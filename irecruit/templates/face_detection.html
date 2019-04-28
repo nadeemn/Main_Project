@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{%  block content %}
+<script>
+window.onload = function (){
+  alert('Click Proceed Button After Capturing 100 images');
+};
+</script>
+    <div class="content-section">
+    <img width="620px" height="500px" src="{{url_for('detect')}}">
+        <br>
+        <br>
+        <div class="form-group" align="center">
+    <a class="btn btn-outline-primary" href="/chat_interview" id="proceed" aria-disabled="true">Proceed</a>
+    </div>
+    </div>
+{% endblock content %}
