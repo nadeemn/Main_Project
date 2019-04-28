@@ -67,7 +67,7 @@
         Thankyou for using our system.Your results will be calculated and will be informed soon.
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary">Exit</button>
+        <a href="/logout" class="btn btn-primary">Exit</a>
       </div>
     </div>
   </div>
@@ -199,7 +199,7 @@ function startTimer(duration, display) {
     }, 1000);
 }
 window.onload = function () {
-        var fiveMinutes = 60*15,
+        var fiveMinutes = 60*1,
         display = document.querySelector('#future_date');
         document.getElementById('countdowntimer').style.color = "blue";
         startTimer(fiveMinutes, display);

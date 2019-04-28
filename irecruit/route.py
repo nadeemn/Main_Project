@@ -9,6 +9,7 @@ from sqlalchemy import update
 import random
 import requests
 import nltk
+import cv2
 from pyemd import emd
 from nltk.corpus import stopwords
 from bs4 import BeautifulSoup, NavigableString, Tag
@@ -20,7 +21,7 @@ from detect import VideoCameraDetection
 #nltk.download('punkt')
 #nltk.download('averaged_perceptron_tagger')
 flag = 0
-import cv2
+
 
 
 @app.route('/chat_retrieval')
@@ -244,7 +245,7 @@ def home():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return render_template('exit.html')
 
 
 @app.route("/details", methods=['POST', 'GET'])
