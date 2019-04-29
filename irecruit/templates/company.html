@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>Results</h1>
+    <div class="table-responsive" id="tab">
+        <table class="table">
+ <thead>
+  <th>Name</th>
+ <th>Email Id</th>
+ <th>Score</th>
+ <th>Result</th>
+ </thead>
+ <tbody>
+ {% for user in users %}
+    <tr>
+
+        {% if usr.id == users.id %}
+            {% for u in usr %}
+            {% if u.id == user.id %}
+       <td>{{ u.firstname }}  {{ u.lastname }}</td>
+                {% endif %}
+            {% endfor %}
+        <td> {{ user.email }}</td>
+        <td>{{ user.score }}</td>
+        {% if user.score > 50 %}
+            <td>Pass</td>
+            {% else %}
+            <td>Fail</td>
+
+        {% endif %}
+        {% endif %}
+
+    </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+</div>
+    <div class="content-section" align="center">
+        <input type="button" value="Download PDF" class="btn btn-primary"
+            id="btPrint" onclick="createPDF()"/>
+    </div>
+
+
+    <script>
+    function createPDF() {
+        var sTable = document.getElementById('tab').innerHTML;
+
+        var style = "<style>";
+        style = style + "table {width: 100%;font: 17px Calibri;}";
+        style = style + "table, th, td {border: solid 1px #DDD; border-collapse: collapse;";
+        style = style + "padding: 2px 3px;text-align: center;}";
+        style = style + "</style>";
+
+        // CREATE A WINDOW OBJECT.
+        var win = window.open('', '', 'height=700,width=700');
+
+        win.document.write('<html><head>');
+        win.document.write('<title>Result</title>');   // <title> FOR PDF HEADER.
+        win.document.write(style);          // ADD STYLE INSIDE THE HEAD TAG.
+        win.document.write('</head>');
+        win.document.write('<body>');
+        win.document.write(sTable);         // THE TABLE CONTENTS INSIDE THE BODY TAG.
+        win.document.write('</body></html>');
+
+        win.document.close(); 	// CLOSE THE CURRENT WINDOW.
+
+        win.print();    // PRINT THE CONTENTS.
+    }
+    </script>
+{% endblock content %}

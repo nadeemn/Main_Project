@@ -1,8 +1,8 @@
 from camera import VideoCamera
 #from word_training import models
 from flask import render_template, request, jsonify, Response, flash, url_for, redirect
-from irecruit.forms import AdminloginForm, AdminForm, LoginForm, DetailsForm, AddQuestionForm
-from irecruit.models import Question, Admin, User, Skill
+from irecruit.forms import AdminloginForm, AdminForm, LoginForm, DetailsForm, AddQuestionForm, CompanyForm
+from irecruit.models import Question, Admin, User, Skill, Company
 from irecruit import app, db, bcrypt, mail
 from flask_login import login_user, current_user, logout_user, login_required, user_logged_in
 from sqlalchemy import update
@@ -10,6 +10,7 @@ import random
 import requests
 import nltk
 import cv2
+import gensim.models.keyedvectors as word2vec
 from pyemd import emd
 from nltk.corpus import stopwords
 from bs4 import BeautifulSoup, NavigableString, Tag
@@ -21,18 +22,17 @@ from detect import VideoCameraDetection
 #nltk.download('punkt')
 #nltk.download('averaged_perceptron_tagger')
 flag = 0
-
-
+models = 0
+number_of_question = 0
+score = 0
 
 @app.route('/chat_retrieval')
 def chat_retrieval():
 
         global correct_answer
         global next_question
-        global scores
         counts = request.args.get('count')
         adm_id = Admin.query.get(current_user.id)
-        scores = adm_id.score
         id = Skill.query.get(current_user.id)
         skills = {}
         for column in id.__table__.columns:
@@ -40,8 +40,7 @@ def chat_retrieval():
         skill_lang = []
         skill_lang.extend((skills['level1'] + ":" + skills['skill1'], skills['level2'] + ":" + skills['skill2'],
                            skills['level3'] + ":" + skills['skill3'], skills['level4'] + ":" + skills['skill4']))
-        print(skills)
-        print(skill_lang)
+
         while True:
             i = random.randint(0, len(skill_lang) - 1)
             lang = skill_lang[i]
@@ -50,11 +49,12 @@ def chat_retrieval():
                 continue
             else:
                 break
-        print(user_level)
-        print(user_language)
+
         items = Question.query.filter(Question.question_language.like(user_language)).\
             filter(Question.question_level.like(user_level)).all()
         if counts == '0':
+            global score
+            score = 0
             while True:
                 i = random.randint(0, len(items) - 1)
                 if items[i].question_chosen == 0:
@@ -64,12 +64,16 @@ def chat_retrieval():
             next_question.question_chosen = 0
             db.session.commit()
             results = [next_question.question, 1]
+            global number_of_question
+            number_of_question = number_of_question+1
+            global total
+            total = number_of_question * 10
             return jsonify(result=results)
         else:
             answr = request.args.get('answer')
             print(correct_answer)
             print(answr)
-            distance = similarity(answr, correct_answer, scores)
+            distance = similarity(answr, correct_answer, score)
             if distance < 3:
                 while True:
                     i = random.randint(0, len(items) - 1)
@@ -80,6 +84,9 @@ def chat_retrieval():
                 next_question.question_chosen = 0
                 db.session.commit()
                 results = [next_question.question, 1]
+                number_of_question = number_of_question+1
+                total = number_of_question*10
+                print(number_of_question)
                 return jsonify(result=results)
             else:
                 nouns = []
@@ -94,10 +101,13 @@ def chat_retrieval():
                 answer = words + " in " + language
                 correct_answer = scrape_answer(answer, language)
                 results = [next_question1, 1]
+                number_of_question = number_of_question+1
+                total = number_of_question * 10
                 return jsonify(result=results)
 
 
 def similarity(given_answer, db_answer, marks):
+    global score
     given_answer = given_answer.lower().split()
     db_answer = db_answer.lower().split()
     stop_words = stopwords.words('english')
@@ -116,8 +126,13 @@ def similarity(given_answer, db_answer, marks):
         marks = marks + 3
     else:
         marks = marks + 0
+    score = marks
+    total_score = (marks/total)*100
+    print(total)
+    print(total_score)
+    print(marks)
     id = Admin.query.get(current_user.id)
-    query = update(Admin).where(id.email == Admin.email).values(score=marks)
+    query = update(Admin).where(id.email == Admin.email).values(score=total_score)
     db.session.execute(query)
     print(distance)
     return distance
@@ -205,6 +220,9 @@ def detect():
 @app.route('/chat_interview')
 def chat_interview():
     if current_user.is_authenticated:
+        global models
+        models = word2vec.KeyedVectors.load_word2vec_format(
+            'C:/Users/hp/PycharmProjects/Main_Project/GoogleNews-vectors-negative300.bin', binary=True, limit=100000)
         return render_template('chat.html', items=Question.query.all())
     else:
         flash('You are not logged in! Please login', 'danger')
@@ -245,6 +263,7 @@ def home():
 @login_required
 def logout():
     logout_user()
+    cv2.VideoCapture(0).release()
     return render_template('exit.html')
 
 
@@ -371,4 +390,39 @@ def admin():
     return render_template('admin.html', title='Admin', form=form)
 
 
+@app.route('/company')
+def company():
+    users = Admin.query.all()
+    usr = User.query.all()
+    return render_template('company.html', title='Company', users=users, usr=usr)
 
+
+@app.route("/addcompany", methods = ['POST', 'GET'])
+def addcompany():
+    db.create_all()
+    if flag:
+        form = CompanyForm()
+        if form.validate_on_submit():
+            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            manager = Company(username=form.username.data, password=hashed_password)
+            db.session.add(manager)
+            db.session.commit()
+            flash('Company added to the database successfully', 'success')
+    else:
+        flash('Admin not logged in!', 'danger')
+        return redirect(url_for('adminlogin'))
+    return render_template('addcompany.html', title='Add Company', form=form)
+
+
+@app.route("/companylogin", methods = ['POST', 'GET'])
+def companylogin():
+    form = AdminloginForm()
+    db.create_all()
+    if form.validate_on_submit():
+        user = Company.query.filter_by(username=form.username.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            flash('Login successful!', 'success')
+            return redirect(url_for('company'))
+        else:
+            flash('Login Unsuccessful. Please check username and password', 'danger')
+    return render_template('companylogin.html', title='Company-Login', form=form)

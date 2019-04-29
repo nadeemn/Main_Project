@@ -59,3 +59,12 @@ class AddQuestionForm(FlaskForm):
     Level = SelectField('Level', choices=[('beginner', 'Beginner'), ('intermediate', 'Intermediate'),
                                           ('advance', 'Advanced')])
     submit = SubmitField('Submit')
+
+
+class CompanyForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password',
+                                     validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Submit')
+

@@ -58,3 +58,12 @@ class Skill(db.Model):
     def __repr__(self):
         return (f"Skill('{self.skill1}:{self.level1}', '{self.skill2}:{self.level2}', '{self.skill3}:{self.level3}', "
                 f"'{self.skill4}:{self.level4}')")
+
+
+class Company(db.Model):
+   id = db.Column(db.Integer, primary_key=True)
+   username = db.Column(db.String(20), nullable=False)
+   password = db.Column(db.String(60), nullable=False)
+
+   def __repr__(self):
+        return f"User('{self.id}', '{self.username}')"
