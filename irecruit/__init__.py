@@ -11,8 +11,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
-app.config['MAIL_USERNAME'] = 'nadeemnazer123@gmail.com'
-app.config['MAIL_PASSWORD'] = 'nadeem123@enchanteur'
+app.config['MAIL_USERNAME'] = 'irecruit.office@gmail.com'
+app.config['MAIL_PASSWORD'] = 'irecruit12345'
 app.config['MAIL_USE_SSL'] = True
 
 mail = Mail(app)

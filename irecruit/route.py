@@ -1,4 +1,4 @@
-from camera import VideoCamera
+#from camera import VideoCamera
 #from word_training import models
 from flask import render_template, request, jsonify, Response, flash, url_for, redirect
 from irecruit.forms import AdminloginForm, AdminForm, LoginForm, DetailsForm, AddQuestionForm, CompanyForm
@@ -33,7 +33,8 @@ def chat_retrieval():
         global next_question
         counts = request.args.get('count')
         adm_id = Admin.query.get(current_user.id)
-        id = Skill.query.get(current_user.id)
+        id = Skill.query.filter(Skill.user_id.like(current_user.id)).first()
+        print(id)
         skills = {}
         for column in id.__table__.columns:
             skills[column.name] = str(getattr(id, column.name))
@@ -73,7 +74,21 @@ def chat_retrieval():
             answr = request.args.get('answer')
             print(correct_answer)
             print(answr)
-            distance = similarity(answr, correct_answer, score)
+            if answr == 'i dont know' or answr == 'i don\'t know':
+                while True:
+                    i = random.randint(0, len(items) - 1)
+                    if items[i].question_chosen == 0:
+                        break
+                next_question = items[i]
+                correct_answer = next_question.question_answer
+                next_question.question_chosen = 0
+                db.session.commit()
+                results = [next_question.question, 1]
+                number_of_question = number_of_question + 1
+                total = number_of_question * 10
+                return jsonify(result=results)
+            else:
+                distance = similarity(answr, correct_answer, score)
             if distance < 3:
                 while True:
                     i = random.randint(0, len(items) - 1)
@@ -94,16 +109,30 @@ def chat_retrieval():
                         if pos.startswith('NN'):
                             nouns.append(word)
                 print(nouns)
-                i = random.randint(0, len(nouns) - 1)
-                words = nouns[i]
-                language = next_question.question_language
-                next_question1 = "What do you mean by " + words
-                answer = words + " in " + language
-                correct_answer = scrape_answer(answer, language)
-                results = [next_question1, 1]
-                number_of_question = number_of_question+1
-                total = number_of_question * 10
-                return jsonify(result=results)
+                if not nouns:
+                    while True:
+                        i = random.randint(0, len(items) - 1)
+                        if items[i].question_chosen == 0:
+                            break
+                    next_question = items[i]
+                    correct_answer = next_question.question_answer
+                    next_question.question_chosen = 0
+                    db.session.commit()
+                    results = [next_question.question, 1]
+                    number_of_question = number_of_question + 1
+                    total = number_of_question * 10
+                    return jsonify(result=results)
+                else:
+                    i = random.randint(0, len(nouns) - 1)
+                    words = nouns[i]
+                    language = next_question.question_language
+                    next_question1 = "What do you mean by " + words
+                    answer = words + " in " + language
+                    correct_answer = scrape_answer(answer, language)
+                    results = [next_question1, 1]
+                    number_of_question = number_of_question+1
+                    total = number_of_question * 10
+                    return jsonify(result=results)
 
 
 def similarity(given_answer, db_answer, marks):
@@ -161,7 +190,7 @@ def scrape_answer(ans, lang):
     page1 = requests.get(h[0])
     soup1 = BeautifulSoup(page1.text, "html.parser")
 
-    if lang == "java" or lang == "cpp":
+    if lang == "java" or lang == "c++":
         a = ""
         for header in soup1.find_all('h1'):
             nextNode = header
@@ -222,8 +251,8 @@ def chat_interview():
     if current_user.is_authenticated:
         global models
         models = word2vec.KeyedVectors.load_word2vec_format(
-            'C:/Users/hp/PycharmProjects/Main_Project/GoogleNews-vectors-negative300.bin', binary=True, limit=100000)
-        return render_template('chat.html', items=Question.query.all())
+            'C:/Users/hp/PycharmProjects/Main_Project/GoogleNews-vectors-negative300.bin', binary=True, limit=200000)
+        return render_template('chat.html', items=Question.query.all(), user=User.query.filter(User.user_id.like(current_user.id)).first())
     else:
         flash('You are not logged in! Please login', 'danger')
         return redirect(url_for('home'))
@@ -263,7 +292,6 @@ def home():
 @login_required
 def logout():
     logout_user()
-    cv2.VideoCapture(0).release()
     return render_template('exit.html')
 
 
@@ -310,12 +338,12 @@ def view_users():
 
 @app.route('/add_questions', methods = ['POST', 'GET'])
 def add_questions():
+    db.create_all()
     if flag:
         form = AddQuestionForm()
         if form.validate_on_submit():
             try:
-                question = Question(question_id=form.Id.data, question=form.Question.data, question_answer=form.Answer.data,
-                                question_level=form.Level.data, question_language=form.Language.data)
+                question = Question(question_id=form.Id.data, question=form.Question.data, question_answer=form.Answer.data, question_level=form.Level.data, question_language=form.Language.data)
                 db.session.add(question)
                 db.session.commit()
                 flash('Question Added Successfully', 'success')
@@ -350,7 +378,7 @@ def passe():
     print(receiver)
     rec = []
     rec.append(receiver)
-    msg = Message('Sorry', sender='nadeemnazer123@gmail.com', recipients = rec)
+    msg = Message('Sorry', sender='irecruit.office@gmail.com', recipients = rec)
     msg.body = "Sorry you have not passed! All the best for future." \
                "This is an electronic mail. Please dont respond to it."
 
@@ -365,7 +393,7 @@ def passe_mails():
     print(receiver)
     rec = []
     rec.append(receiver)
-    msg = Message('Greetings', sender='nadeemnazer123@gmail.com', recipients=rec)
+    msg = Message('Greetings', sender='irecruit.office@gmail.com', recipients=rec)
     msg.body = "Congratulaitons! You have cleared the test! We will contact you soon." \
                "This is an electronic mail. Please dont respond to it."
 
@@ -383,6 +411,16 @@ def admin():
             user = Admin(email=form.email.data, password=hashed_password)
             db.session.add(user)
             db.session.commit()
+            rec = []
+            rec.append(form.email.data)
+            em = form.email.data
+            pw = form.password.data
+            msg = Message('Login Details', sender='irecruit.office@gmail.com', recipients=rec)
+            msg.body = "Congratulations! You have successfully registered on the Irecruit Portal. \n"\
+                       "Your username : "+em+"\n password : "+pw+" "\
+                       "\nPlease note the credentials for all further communication with us."
+            mail.send(msg)
+
             flash('User added to the database successfully', 'success')
     else:
         flash('Admin not logged in!', 'danger')
@@ -407,6 +445,16 @@ def addcompany():
             manager = Company(username=form.username.data, password=hashed_password)
             db.session.add(manager)
             db.session.commit()
+            rec = []
+            rec.append('shilpa.cs96@gmail.com')
+            us = form.username.data
+            pw = form.password.data
+            msg = Message('Registration Details', sender='irecruit.office@gmail.com', recipients=rec)
+            msg.body = "You have registered successfully with Irecruit.Please find the attached link to sign-in: \n"\
+                    "http://127.0.0.1:5000/companylogin"\
+                       "\n Your username : "+us+"\n Your password : "+pw+" "\
+                       "\nPlease note the credentials for all further communication with us."
+            mail.send(msg)
             flash('Company added to the database successfully', 'success')
     else:
         flash('Admin not logged in!', 'danger')

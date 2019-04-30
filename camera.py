@@ -78,12 +78,13 @@ class VideoCamera(object):
                 count = 0
 
                 if result[1] < 500:
+                    global confidence
                     confidence = int(100 * (1 - (result[1]) / 300))
                     display_string = str(confidence) + '% Confidence it is user'
                     # ret, jpeg = cv2.imencode('.jpg', cv2.putText(image, display_string, (100, 120), cv2.FONT_HERSHEY_COMPLEX, 1, (250, 120, 255), 2)
 
                 # FACE CHECKING
-                if confidence > 87:
+                if confidence > 80:
                     count = 1
                     ret, jpeg = cv2.imencode('.jpg',
                                              cv2.putText(image, "Unlocked", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1,
