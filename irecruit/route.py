@@ -1,4 +1,4 @@
-#from camera import VideoCamera
+from camera import VideoCamera
 #from word_training import models
 from flask import render_template, request, jsonify, Response, flash, url_for, redirect
 from irecruit.forms import AdminloginForm, AdminForm, LoginForm, DetailsForm, AddQuestionForm, CompanyForm
@@ -62,7 +62,7 @@ def chat_retrieval():
                     break
             next_question = items[i]
             correct_answer = next_question.question_answer
-            next_question.question_chosen = 0
+            next_question.question_chosen = 1
             db.session.commit()
             results = [next_question.question, 1]
             global number_of_question
@@ -74,14 +74,14 @@ def chat_retrieval():
             answr = request.args.get('answer')
             print(correct_answer)
             print(answr)
-            if answr == 'i dont know' or answr == 'i don\'t know':
+            if answr == 'i dont know' or answr == 'i don\'t know' or answr == 'dont know':
                 while True:
                     i = random.randint(0, len(items) - 1)
                     if items[i].question_chosen == 0:
                         break
                 next_question = items[i]
                 correct_answer = next_question.question_answer
-                next_question.question_chosen = 0
+                next_question.question_chosen = 1
                 db.session.commit()
                 results = [next_question.question, 1]
                 number_of_question = number_of_question + 1
@@ -96,7 +96,7 @@ def chat_retrieval():
                         break
                 next_question = items[i]
                 correct_answer = next_question.question_answer
-                next_question.question_chosen = 0
+                next_question.question_chosen = 1
                 db.session.commit()
                 results = [next_question.question, 1]
                 number_of_question = number_of_question+1
@@ -116,7 +116,7 @@ def chat_retrieval():
                             break
                     next_question = items[i]
                     correct_answer = next_question.question_answer
-                    next_question.question_chosen = 0
+                    next_question.question_chosen = 1
                     db.session.commit()
                     results = [next_question.question, 1]
                     number_of_question = number_of_question + 1
