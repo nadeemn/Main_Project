@@ -108,6 +108,11 @@ def chat_retrieval():
                 for word, pos in nltk.pos_tag(nltk.word_tokenize(str(answr))):
                         if pos.startswith('NN'):
                             nouns.append(word)
+                for noun in nouns:
+                    i=0
+                    if nouns[i] == next_question.question_language:
+                        nouns.remove(noun)
+                    i+=1
                 print(nouns)
                 if not nouns:
                     while True:
@@ -126,7 +131,7 @@ def chat_retrieval():
                     i = random.randint(0, len(nouns) - 1)
                     words = nouns[i]
                     language = next_question.question_language
-                    next_question1 = "What do you mean by " + words
+                    next_question1 = "What do you mean by " + words + " in " + language
                     answer = words + " in " + language
                     correct_answer = scrape_answer(answer, language)
                     results = [next_question1, 1]
@@ -251,7 +256,7 @@ def chat_interview():
     if current_user.is_authenticated:
         global models
         models = word2vec.KeyedVectors.load_word2vec_format(
-            'C:/Users/hp/PycharmProjects/Main_Project/GoogleNews-vectors-negative300.bin', binary=True, limit=200000)
+            'C:/Users/hp/PycharmProjects/Main_Project/GoogleNews-vectors-negative300.bin', binary=True, limit=1000000)
         return render_template('chat.html', items=Question.query.all(), user=User.query.filter(User.user_id.like(current_user.id)).first())
     else:
         flash('You are not logged in! Please login', 'danger')
