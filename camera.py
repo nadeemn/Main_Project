@@ -5,29 +5,29 @@ import numpy as np
 # listdir:for fetching data from a directory
 from os import listdir
 from os.path import isfile, join
-from flask import render_template
-import warnings
-
-data_path = 'C:\\Users\\hp\\PycharmProjects\\Main_Project\\faces\\'
-onlyfiles = [f for f in listdir(data_path) if isfile(join(data_path, f))]
-
-Training_Data, Labels = [], []
-
-for i, files in enumerate(onlyfiles):
-    image_path = data_path + onlyfiles[i]
-    images = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    Training_Data.append(np.asarray(images, dtype=np.uint8))
-    Labels.append(i)
-
-Labels = np.asarray(Labels, dtype=np.int32)
-
-model = cv2.face.LBPHFaceRecognizer_create()
 
 
-model.train(np.asarray(Training_Data), np.asarray(Labels))
+def model_train():
+    data_path = 'C:\\Users\\Nadeem\\PycharmProjects\\Main_Project\\irecruit\\faces\\'
+    onlyfiles = [f for f in listdir(data_path) if isfile(join(data_path, f))]
 
-print("Model Training Complete")
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+    Training_Data, Labels = [], []
+
+    for i, files in enumerate(onlyfiles):
+        image_path = data_path + onlyfiles[i]
+        images = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+        Training_Data.append(np.array(images, dtype=np.uint8))
+        Labels.append(i)
+
+    Labels = np.array(Labels, dtype=np.int32)
+    global model
+    model = cv2.face.LBPHFaceRecognizer_create()
+
+    model.train(np.array(Training_Data), np.array(Labels))
+
+    print("Model Training Complete")
+    global face_cascade
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 
 class VideoCamera(object):
@@ -38,13 +38,13 @@ class VideoCamera(object):
         self.video = cv2.VideoCapture(0)
         # If you decide to use video.mp4, you must have this file in the folder
         # as the main.py.
-        # self.video = cv2.VideoCapture('video.mp4')
+        #self.video = cv2.VideoCapture('video.mp4')
 
     def __del__(self):
         self.video.release()
 
     def get_frame(self):
-        face_classifier = cv2.CascadeClassifier('C:\\Users\\hp\\PycharmProjects\\Main_Project\\'
+        face_classifier = cv2.CascadeClassifier('C:\\Users\\Nadeem\\PycharmProjects\\Main_Project\\'
                                                 'haarcascade_frontalface_default.xml')
 
         def face_detector(img, size=0.5):
@@ -59,7 +59,7 @@ class VideoCamera(object):
                 roi = img[y:y + h, x:x + w]
                 roi = cv2.resize(roi, (200, 200))
 
-            return img, roi
+                return img, roi
 
         while True:
 

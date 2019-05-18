@@ -15,7 +15,7 @@ class VideoCameraDetection(object):
     def get_frame(self, count):
 
         # feature extraction
-        face_classifier = cv2.CascadeClassifier('C:\\Users\\hp\\PycharmProjects\\Main_Project\\haarcascade_frontalface_default.xml')
+        face_classifier = cv2.CascadeClassifier('C:\\Users\\Nadeem\\PycharmProjects\\Main_Project\\haarcascade_frontalface_default.xml')
 
         # feature extraction
         def face_extractor(img):
@@ -29,7 +29,7 @@ class VideoCameraDetection(object):
             for (x, y, w, h) in faces:
                 cropped_face = img[y:y + h, x:x + w]
 
-            return cropped_face
+                return cropped_face
 
         # configure cam
         cap = cv2.VideoCapture(0)
@@ -42,18 +42,16 @@ class VideoCameraDetection(object):
 
                 count += 1
                 face = cv2.resize(face_extractor(frame), (200, 200))
-              #  face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
 
-                file_name_path = 'C:\\Users\\hp\\PycharmProjects\\Main_Project\\faces\\user' + str(count) + '.jpg'
+                file_name_path = 'C:\\Users\\Nadeem\\PycharmProjects\\Main_Project\\irecruit\\faces\\user' + str(count)\
+                                 + '.jpg'
                 cv2.imwrite(file_name_path, cv2.cvtColor(face, cv2.COLOR_BGR2GRAY))
-                ret, jpeg = cv2.imencode('.jpg', cv2.putText(face, str(count), (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2))
+                ret, jpeg = cv2.imencode('.jpg', cv2.putText(face, str(count), (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1,
+                                                             (0, 0, 0), 2))
                 print(count)
-                #requests.post('http://127.0.0.1:5000/detection', json={"counts:count"})
                 if cv2.waitKey(1) == 13:
                     break
                 return jpeg.tobytes(), count
-
-              #  cv2.imshow('Face Cropper', face)
 
             else:
                 print("Face not Found")
