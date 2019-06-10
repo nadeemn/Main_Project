@@ -1,11 +1,11 @@
 from camera import VideoCamera
-#from word_training import models
 from flask import render_template, request, jsonify, Response, flash, url_for, redirect
 from irecruit.forms import AdminloginForm, AdminForm, LoginForm, DetailsForm, AddQuestionForm, CompanyForm
 from irecruit.models import Question, Admin, User, Skill, Company
 from irecruit import app, db, bcrypt, mail
 from flask_login import login_user, current_user, logout_user, login_required, user_logged_in
 from sqlalchemy import update
+import speech_recognition as sr
 import random
 import requests
 import nltk
@@ -21,6 +21,7 @@ from detect import VideoCameraDetection
 #download('stopwords')
 #nltk.download('punkt')
 #nltk.download('averaged_perceptron_tagger')
+
 flag = 0
 models = 0
 number_of_question = 0
@@ -254,21 +255,33 @@ def detect():
 @app.route('/chat_interview')
 def chat_interview():
     if current_user.is_authenticated:
-        global models
-        models = word2vec.KeyedVectors.load_word2vec_format(
-            'C:/Users/hp/PycharmProjects/Main_Project/GoogleNews-vectors-negative300.bin', binary=True, limit=1000000)
-        return render_template('chat.html', items=Question.query.all(), user=User.query.filter(User.user_id.like(current_user.id)).first())
+        from camera import model_train
+        model_train()
+        questions = Question.query.all()
+        for question in questions:
+            question.question_chosen = 0
+            db.session.commit()
+        #global models
+        #models = word2vec.KeyedVectors.load_word2vec_format(
+            #'C:/Users/Nadeem/PycharmProjects/Main_Project/GoogleNews-vectors-negative300.bin', binary=True,
+           # limit=2000000)
+        return render_template('chat.html', items=Question.query.all(), user=User.query.filter(User.user_id.like(
+            current_user.id)).first())
     else:
         flash('You are not logged in! Please login', 'danger')
         return redirect(url_for('home'))
 
 
 def gen1(camera):
-    global cnt
+    count = 0
     while True:
-        frame, cnt = camera.get_frame()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        frame, cnt = camera.get_frame(count)
+        count = cnt
+        if cnt >= 100:
+            cv2.VideoCapture(0).release()
+            break
+        else:
+            yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 
 @app.route('/video_feed')
@@ -479,3 +492,21 @@ def companylogin():
         else:
             flash('Login Unsuccessful. Please check username and password', 'danger')
     return render_template('companylogin.html', title='Company-Login', form=form)
+
+
+@app.route("/speech")
+def speech():
+    i = request.args.get('val')
+    if i == '1':
+        r = sr.Recognizer()
+        with sr.Microphone() as source:
+            audio = r.listen(source)
+
+        try:
+            replies = r.recognize_google(audio)
+            print(replies)
+            return jsonify(result=replies)
+
+        except sr.UnknownValueError:
+            value = "Google Speech Recognition could not understand audio"
+            return jsonify(err=value)

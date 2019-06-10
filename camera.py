@@ -43,7 +43,7 @@ class VideoCamera(object):
     def __del__(self):
         self.video.release()
 
-    def get_frame(self):
+    def get_frame(self, count):
         face_classifier = cv2.CascadeClassifier('C:\\Users\\Nadeem\\PycharmProjects\\Main_Project\\'
                                                 'haarcascade_frontalface_default.xml')
 
@@ -75,7 +75,6 @@ class VideoCamera(object):
 
                 face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
                 result = model.predict(face)
-                count = 0
 
                 if result[1] < 500:
                     global confidence
@@ -85,7 +84,7 @@ class VideoCamera(object):
 
                 # FACE CHECKING
                 if confidence > 80:
-                    count = 1
+
                     ret, jpeg = cv2.imencode('.jpg',
                                              cv2.putText(image, "Unlocked", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1,
                                                          (0, 255, 0), 2))
@@ -94,9 +93,9 @@ class VideoCamera(object):
                     # cv2.putText(image, "Unlocked", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
                     # cv2.imshow('Face Cropper', image)
                 else:
-
+                    count += 1
                     ret, jpeg = cv2.imencode('.jpg',
-                                             cv2.putText(image, "Locked", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1,
+                                             cv2.putText(image, "Warning", (250, 450), cv2.FONT_HERSHEY_COMPLEX, 1,
                                                          (0, 0, 255), 2))
                     return jpeg.tobytes(), count
 
